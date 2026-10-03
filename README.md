@@ -80,7 +80,7 @@ The plugin uses the allocated block **9530000-9530999**, laid out per convention
 | 9530110 | `/photo/:/transcode` | `ARGS:url` (loopback URLs only) | 931100, 934110 | thumbnails are fetched via `url=http://127.0.0.1:32400/...` |
 | 9530120 | `/log`, Plex clients only (`X-Plex-Client-Identifier` present) | `ARGS:message` | 932370 | client log lines are free text |
 | 9530130 | `/media/grabbers/devices`, `/media/grabbers/tv.plex.grabbers.hdhomerun/devices...` | `ARGS:uri` | 931100 | tuner LAN address (moot if plex-hardening-plugin's endpoint denies are on) |
-| 9530140 | `/library/search`, `/tv.plex.providers.*/library/search` | `ARGS:query` | 932230, 932250 | free-text search matches wrapper + 2-3 char command shape (932230) and direct command shape, including type-ahead fragments like `sh movie` (932250) |
+| 9530140 | `/library/search`, `/tv.plex.providers.*/library/search`, `/hubs/search` | `ARGS:query` | 932230, 932250 | free-text search matches wrapper + 2-3 char command shape (932230) and direct command shape, including type-ahead fragments like `sh movie` (932250) |
 | 9530150 | `/status/sessions/terminate` | `ARGS_NAMES:sessionId` | 943110, 943120 | playback key, not an auth session; endpoint is owner-only |
 | 9530160 | `/library/sections/{id}/all` | `ARGS` (all parameter values; a regex key over the title names does not load on libmodsecurity) | 932250 | Advanced Filters: free text in the Title field (any level prefix, any operator form) matches the direct command shape, e.g. `title!=ls` |
 | 9530170 | `POST /library/metadata/{id}/{posters,arts,clearLogos,squareArts,banners,themes,thumbs}` | request body not read (`ctl:requestBodyAccess=Off`) | 920250 | artwork uploaded from a file is a raw image body sent under a form content type, so the engine parses it as form fields and 920250 (when enabled) rejects the bytes; an image is not form data |
@@ -106,7 +106,7 @@ Where real traffic differed from the Plex OpenAPI spec (v1.2.3), the rules follo
 | Subtitle upload is a `POST` with `Content-Type: text/plain` | endpoint documented as `GET` only | 9530180 |
 | Photo transcoder `url=` is an absolute loopback URL, port copied from the client's connection (`:32400`, `:443`) | relative path example only | 9530110 |
 | Plex Web encodes filter operators inconsistently (`title!=x` and `title!%3D=x` for the same operator), so the parsed parameter name varies | operators documented, encoding not | 9530160 |
-| Plex Web and other clients search via `/library/search` | only `/hubs/search` documented | 9530140 |
+| Plex Web and other clients search via `/library/search` | only `/hubs/search` documented; both are covered | 9530140 |
 | Tuner add goes through the server-proxied grabber path `/media/grabbers/tv.plex.grabbers.hdhomerun/devices` | bare `/media/grabbers/devices` | 9530130 |
 | The profile verb `add-transcode-target-settings(...)` is accepted by the server | absent from the official augmentation grammar | 9530100 (and hardening 9531220) |
 | Plex Web calls `GET /updater/check` | documented as `PUT` | hardening 9531430 (method-agnostic for this reason) |
