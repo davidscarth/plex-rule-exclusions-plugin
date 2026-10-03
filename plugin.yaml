@@ -31,7 +31,7 @@ rule_id_range:
   end: 9530999
 
 compatibility:
-  crs_version: ">=4.25.1"
+  crs_version: ">=4.25.2"
 
 configuration:
   file: "plugins/plex-rule-exclusions-config.conf"
