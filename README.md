@@ -4,7 +4,7 @@
 
 ## Description
 
-Rule exclusions for [Plex Media Server](https://www.plex.tv/) behind an OWASP CRS 4.x reverse-proxy WAF (Coraza or ModSecurity). These remove the false positives that otherwise break playback, search, library filters, thumbnails, client log uploads, and artwork and subtitle uploads at paranoia level 1 (PL1). Every exclusion is scoped to one endpoint, and almost all to one parameter using `ctl:ruleRemoveTargetById`..
+Rule exclusions for [Plex Media Server](https://www.plex.tv/) behind an OWASP CRS 4.x reverse-proxy WAF (Coraza or ModSecurity). These remove the false positives that otherwise break playback, search, library filters, thumbnails, client log uploads, and artwork and subtitle uploads at paranoia level 1 (PL1). Every exclusion is scoped to one endpoint, and almost all to one parameter using `ctl:ruleRemoveTargetById`.
 
 These started out as my own collection of hand-tuned WAF rules, and ran in production for over a year before I decided to share them with the community. My desire to share them led me to the OWASP CRS plugin registry, and I decided to make them into a formal plugin instead of a loose collection of rules.
 
