@@ -4,14 +4,15 @@ meta:
   description: "artwork upload from a file: the raw image body on POST /library/metadata/{id}/{posters,arts,clearLogos,squareArts,...} is not read as form data (requestBodyAccess=Off), so 920250 no longer sees it"
 # Requests are given as encoded_request (base64 of the raw request) because
 # the bodies carry bytes that are not valid UTF-8, which a YAML string cannot
-# hold. 920250 only runs when tx.crs_validate_utf8_encoding=1 (off by
-# default); the integration workflow sets it via crs-config. no_match_regex
-# on the positive cases asserts no paranoia-level-1 CRS rule fired on the
-# upload (the harness is DetectionOnly, so a status assertion would be
-# meaningless). There is no scope-control case: the same binary body makes
-# 920250 fire on CRS main but not on 4.25.1 (first CI run, 2026-10-02), so
-# the assertion is not stable across the harness's CRS targets; 920250's
-# behavior on this body is production-observed on CRS 4.29.0.
+# hold. 920250 is off by default and cannot be enabled in CI, so these cases
+# prove only that no PL1 rule fires; production (920250 on)
+# proves the body is not read. no_match_regex on the positive cases asserts
+# no paranoia-level-1 CRS rule fired on the upload (the harness is
+# DetectionOnly, so a status assertion would be meaningless). There is no
+# scope-control case: the same binary body makes 920250 fire on CRS main but
+# not on the LTS (first CI run, 2026-10-02), so the assertion is not stable
+# across the harness's CRS targets; 920250's behavior on this body is
+# production-observed on CRS 4.29.0.
 rule_id: 9530170
 tests:
   - test_id: 1

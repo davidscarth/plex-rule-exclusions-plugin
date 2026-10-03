@@ -75,7 +75,7 @@ The plugin uses the allocated block **9530000-9530999**, laid out per convention
 | 9530100 | `/video\|music\|audio\|subtitles/:/transcode/universal/*`, `/downloadQueue/{id}/add` | `ARGS:X-Plex-Client-Profile-Extra` | 932235, 932370 | client-profile DSL: `protocol=dash&` matches 932235, `&replace` in `add-limitation(...)` matches 932370 |
 | 9530110 | `/photo/:/transcode` | `ARGS:url` (loopback URLs only) | 931100, 934110 | thumbnails are fetched via `url=http://127.0.0.1:32400/...` |
 | 9530120 | `/log` | `ARGS:message` | 932370 | client log lines are free text |
-| 9530130 | `/media/grabbers/devices`, `/media/grabbers/tv.plex.grabbers.hdhomerun/devices…` | `ARGS:uri` | 931100 | tuner LAN address (moot if plex-hardening-plugin's endpoint denies are on) |
+| 9530130 | `/media/grabbers/devices`, `/media/grabbers/tv.plex.grabbers.hdhomerun/devices...` | `ARGS:uri` | 931100 | tuner LAN address (moot if plex-hardening-plugin's endpoint denies are on) |
 | 9530140 | `/library/search`, `/tv.plex.providers.*/library/search` | `ARGS:query` | 932230, 932250 | free-text search matches wrapper + 2-3 char command shape (932230) and direct command shape, including type-ahead fragments like `sh movie` (932250) |
 | 9530150 | `/status/sessions/terminate` | `ARGS_NAMES:sessionId` | 943110, 943120 | playback key, not an auth session; endpoint is owner-only |
 | 9530160 | `/library/sections/{id}/all` | whole rule (`ctl:ruleRemoveById`; a regex target key does not load on libmodsecurity) | 932250 | Advanced Filters: free text in the Title field (any level prefix, any operator form) matches the direct command shape, e.g. `title!=ls` |
@@ -98,7 +98,7 @@ Where real traffic differed from the Plex OpenAPI spec (v1.2.3), the rules follo
 
 | Observed | Spec | Rule |
 |---|---|---|
-| Artwork is uploaded to plural `/posters`, `/arts`, `/clearLogos`, `/squareArts`, as raw bytes under a form content type | singular `{element}` (`poster`, `art`, …); content type not stated | 9530170 |
+| Artwork is uploaded to plural `/posters`, `/arts`, `/clearLogos`, `/squareArts`, as raw bytes under a form content type | singular `{element}` (`poster`, `art`, ...); content type not stated | 9530170 |
 | Subtitle upload is a `POST` with `Content-Type: text/plain` | endpoint documented as `GET` only | 9530180 |
 | Photo transcoder `url=` is an absolute loopback URL, port copied from the client's connection (`:32400`, `:443`) | relative path example only | 9530110 |
 | Plex Web encodes filter operators inconsistently (`title!=x` and `title!%3D=x` for the same operator), so the parsed parameter name varies | operators documented, encoding not | 9530160 |

@@ -4,13 +4,14 @@ meta:
   description: "subtitle upload from a file: POST /library/metadata/{id}/subtitles with Content-Type text/plain passes 920420 and its body is not read as form data"
 # Requests are given as encoded_request (base64 of the raw request) because
 # the bodies carry bytes that are not valid UTF-8, which a YAML string cannot
-# hold. 920250 only runs when tx.crs_validate_utf8_encoding=1 (off by
-# default); the integration workflow sets it via crs-config. no_match_regex
-# on the positive cases asserts no paranoia-level-1 CRS rule fired on the
-# upload (the harness is DetectionOnly, so a status assertion would be
-# meaningless); expect_ids on the scope-control case asserts the CRS rule
-# still fires on the same body elsewhere, so if it fails the exclusion may
-# no longer be needed.
+# hold. 920250 is off by default and cannot be enabled in CI, so these cases
+# prove only that no PL1 rule fires; production (920250 on)
+# proves the body is not read. 920420 is on by default, so its cases are
+# meaningful in CI. no_match_regex on the positive cases asserts no
+# paranoia-level-1 CRS rule fired on the upload (the harness is
+# DetectionOnly, so a status assertion would be meaningless); expect_ids on
+# the scope-control case asserts the CRS rule still fires on the same body
+# elsewhere, so if it fails the exclusion may no longer be needed.
 rule_id: 9530180
 tests:
   - test_id: 1
