@@ -1,0 +1,108 @@
+---
+meta:
+  author: "David Scarth"
+  description: "Advanced Filters on a library: the Title field (any level prefix, any operator form) is excluded from 932250 on /library/sections/{id}/all"
+# no_match_regex on the positive cases asserts that NO paranoia-level-1 CRS
+# rule fired on the legitimate request, so a CRS sibling added later that
+# matches the same payload fails the test without listing rule IDs. The
+# harness runs DetectionOnly at PL4, so a status assertion would be
+# meaningless and PL2-4 rules may fire; the regex is scoped to PL1.
+# expect_ids on the scope-control case asserts the CRS rule still matches
+# the payload; if it fails, the exclusion may no longer be needed.
+rule_id: 9530160
+tests:
+  - test_id: 1
+    desc: "Filter 'Title is not ls': operator left raw, parsed name title! (real Plex Web 4.162.1)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/library/sections/1/all?type=1&sort=year&title!=ls%20&year=2020&and=1&includeCollections=1&includeExternalMedia=1&includeAdvanced=1&includeMeta=1&X-Plex-Product=Plex%20Web&X-Plex-Version=4.162.1&X-Plex-Client-Identifier=c6o816mccns508rh7tmjhngs&X-Plex-Container-Start=0&X-Plex-Container-Size=50"
+        output:
+          log:
+            no_expect_ids: [932250]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 2
+    desc: "Filter 'Title is not sh': operator encoded, parsed name title!= (real Plex Web 4.162.1)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/library/sections/1/all?type=1&sort=titleSort&title!%3D=sh%20&and=1&includeCollections=1&includeExternalMedia=1&includeAdvanced=1&includeMeta=1&X-Plex-Product=Plex%20Web&X-Plex-Version=4.162.1&X-Plex-Client-Identifier=c6o816mccns508rh7tmjhngs&X-Plex-Container-Start=0&X-Plex-Container-Size=50"
+        output:
+          log:
+            no_expect_ids: [932250]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 3
+    desc: "Filter on a TV library, show.title=ls with a date operator alongside (real Plex Web 4.162.1)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/library/sections/2/all?type=2&sort=titleSort%3Adesc&show.title=ls%20&show.addedAt%3E%3E=2025-12-01&and=1&includeCollections=1&includeExternalMedia=1&includeAdvanced=1&includeMeta=1&X-Plex-Product=Plex%20Web&X-Plex-Version=4.162.1&X-Plex-Client-Identifier=c6o816mccns508rh7tmjhngs&X-Plex-Container-Start=0&X-Plex-Container-Size=50"
+        output:
+          log:
+            no_expect_ids: [932250]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 4
+    desc: "'begins with' operator form title<=ls is the same field (documented operator set)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/library/sections/1/all?type=1&title%3C=ls%20&and=1&includeCollections=1&includeExternalMedia=1&includeAdvanced=1&includeMeta=1&X-Plex-Product=Plex%20Web&X-Plex-Version=4.162.1&X-Plex-Client-Identifier=c6o816mccns508rh7tmjhngs&X-Plex-Container-Start=0&X-Plex-Container-Size=50"
+        output:
+          log:
+            no_expect_ids: [932250]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 5
+    desc: "Same title!=ls on an unrelated path is still inspected (scope control; proves 932250 still matches)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/library/sections?title!=ls%20"
+        output:
+          log:
+            expect_ids: [932250]
+  - test_id: 6
+    desc: "'is' operator in encoded form, parsed name title= (Meta block operator set)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/library/sections/1/all?type=1&title%3D=ls%20&and=1&includeCollections=1&includeExternalMedia=1&includeAdvanced=1&includeMeta=1&X-Plex-Product=Plex%20Web&X-Plex-Version=4.162.1&X-Plex-Client-Identifier=c6o816mccns508rh7tmjhngs&X-Plex-Container-Start=0&X-Plex-Container-Size=50"
+        output:
+          log:
+            no_expect_ids: [932250]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'

@@ -1,0 +1,48 @@
+---
+meta:
+  author: "David Scarth"
+  description: "Plex client log message must not trigger 932370"
+# no_match_regex on the positive cases asserts that NO paranoia-level-1 CRS
+# rule fired on the legitimate request, so a CRS sibling added later that
+# matches the same payload fails the test without listing rule IDs. The
+# harness runs DetectionOnly at PL4, so a status assertion would be
+# meaningless and PL2-4 rules may fire; the regex is scoped to PL1.
+# expect_ids on the scope-control case asserts the CRS rule still matches
+# the payload; if it fails, the exclusion may no longer be needed.
+# Case 1 sends GET: the exclusion is method-agnostic and the legacy Plex docs
+# document GET /log. The spec documents PUT, but the CI image enforces CRS's
+# default allowed methods (911100) and ignores tx.allowed_methods set via
+# crs-config, so a PUT case would fail on 911100 regardless of this plugin.
+rule_id: 9530120
+tests:
+  - test_id: 1
+    desc: "Plex Web client log line echoing a transcode profile (&replace matches 932370) is excluded on /log"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/log?level=3&source=Player&message=%5BTranscode%5D%20decision%20failed%20for%20profile%20add-limitation%28scope%3DvideoCodec%26scopeName%3D%2A%26type%3DupperBound%26name%3Dvideo.frameRate%26value%3D30%26replace%3Dtrue%29"
+        output:
+          log:
+            no_expect_ids: [932370]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 2
+    desc: "Same message parameter on an unrelated path is still inspected (scope control)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/library/sections?message=%5BTranscode%5D%20decision%20failed%20for%20profile%20add-limitation%28scope%3DvideoCodec%26scopeName%3D%2A%26type%3DupperBound%26name%3Dvideo.frameRate%26value%3D30%26replace%3Dtrue%29"
+        output:
+          log:
+            expect_ids: [932370]

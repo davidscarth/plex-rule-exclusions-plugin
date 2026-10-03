@@ -1,0 +1,61 @@
+---
+meta:
+  author: "David Scarth"
+  description: "Plex session terminate sessionId must not trigger 943110/943120"
+# no_match_regex on the positive cases asserts that NO paranoia-level-1 CRS
+# rule fired on the legitimate request, so a CRS sibling added later that
+# matches the same payload fails the test without listing rule IDs. The
+# harness runs DetectionOnly at PL4, so a status assertion would be
+# meaningless and PL2-4 rules may fire; the regex is scoped to PL1.
+# expect_ids on the scope-control case asserts the CRS rule still matches
+# the payload; if it fails, the exclusion may no longer be needed.
+rule_id: 9530150
+tests:
+  - test_id: 1
+    desc: "sessionId with off-domain Referer (Plex Web) is excluded from 943110"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+            Referer: https://app.plex.tv/desktop/
+          port: 80
+          method: POST
+          uri: "/status/sessions/terminate?sessionId=abcdef12345&reason=Stopped%20by%20owner"
+        output:
+          log:
+            no_expect_ids: [943110, 943120]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 2
+    desc: "sessionId with no Referer (native app) is excluded from 943120"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: POST
+          uri: "/status/sessions/terminate?sessionId=abcdef12345&reason=Stopped%20by%20owner"
+        output:
+          log:
+            no_expect_ids: [943110, 943120]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 3
+    desc: "sessionId on an unrelated path is still inspected (scope control)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/library/sections?sessionId=abcdef12345"
+        output:
+          log:
+            expect_ids: [943120]

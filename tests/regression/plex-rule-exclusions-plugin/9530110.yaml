@@ -1,0 +1,90 @@
+---
+meta:
+  author: "David Scarth"
+  description: "Plex photo transcoder loopback URL must not trigger 931100/934110"
+# no_match_regex on the positive cases asserts that NO paranoia-level-1 CRS
+# rule fired on the legitimate request, so a CRS sibling added later that
+# matches the same payload fails the test without listing rule IDs. The
+# harness runs DetectionOnly at PL4, so a status assertion would be
+# meaningless and PL2-4 rules may fire; the regex is scoped to PL1.
+# expect_ids on the scope-control case asserts the CRS rule still matches
+# the payload; if it fails, the exclusion may no longer be needed.
+rule_id: 9530110
+tests:
+  - test_id: 1
+    desc: "Thumbnail fetch via url=http://127.0.0.1:32400/... is excluded from 931100 and 934110"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/photo/:/transcode?width=240&height=360&minSize=1&upscale=1&url=http%3A%2F%2F127.0.0.1%3A32400%2Flibrary%2Fmetadata%2F1%2Fthumb%2F1"
+        output:
+          log:
+            no_expect_ids: [931100, 934110]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 2
+    desc: "Same url parameter on an unrelated path is still inspected (scope control)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/library/sections?url=http%3A%2F%2F127.0.0.1%3A32400%2Flibrary%2Fmetadata%2F1%2Fthumb%2F1"
+        output:
+          log:
+            expect_ids: [931100]
+  - test_id: 3
+    desc: "Loopback url on port 443 (form seen behind a reverse proxy) is excluded"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/photo/:/transcode?width=240&height=360&minSize=1&upscale=1&url=http%3A%2F%2F127.0.0.1%3A443%2Flibrary%2Fmetadata%2F1%2Fthumb%2F1"
+        output:
+          log:
+            no_expect_ids: [931100, 934110]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 4
+    desc: "A url to another host on the photo transcoder is still inspected (chain link 3)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/photo/:/transcode?width=240&height=360&minSize=1&upscale=1&url=http%3A%2F%2F10.0.0.5%2Fadmin"
+        output:
+          log:
+            expect_ids: [931100]
+  - test_id: 5
+    desc: "Two url values, one loopback and one not, are still inspected (chain link 2)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/photo/:/transcode?width=240&height=360&minSize=1&upscale=1&url=http%3A%2F%2F127.0.0.1%3A32400%2Fx&url=http%3A%2F%2F10.0.0.5%2F"
+        output:
+          log:
+            expect_ids: [931100]

@@ -1,0 +1,60 @@
+---
+meta:
+  author: "David Scarth"
+  description: "Plex HDHomeRun tuner discovery must not trigger 931100"
+# no_match_regex on the positive cases asserts that NO paranoia-level-1 CRS
+# rule fired on the legitimate request, so a CRS sibling added later that
+# matches the same payload fails the test without listing rule IDs. The
+# harness runs DetectionOnly at PL4, so a status assertion would be
+# meaningless and PL2-4 rules may fire; the regex is scoped to PL1.
+# expect_ids on the scope-control case asserts the CRS rule still matches
+# the payload; if it fails, the exclusion may no longer be needed.
+rule_id: 9530130
+tests:
+  - test_id: 1
+    desc: "Tuner LAN address in uri= is excluded from 931100 on the hdhomerun devices endpoint"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/media/grabbers/tv.plex.grabbers.hdhomerun/devices?uri=http%3A%2F%2F192.168.1.50%3A80"
+        output:
+          log:
+            no_expect_ids: [931100]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 2
+    desc: "Same uri= on an unrelated path is still inspected (scope control; proves 931100 still matches)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/library/sections?uri=http%3A%2F%2F192.168.1.50%3A80"
+        output:
+          log:
+            expect_ids: [931100]
+  - test_id: 3
+    desc: "uri= on the documented add-device call POST /media/grabbers/devices is excluded"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: POST
+          uri: "/media/grabbers/devices?uri=http%3A%2F%2F192.168.1.50%3A80"
+        output:
+          log:
+            no_expect_ids: [931100]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'

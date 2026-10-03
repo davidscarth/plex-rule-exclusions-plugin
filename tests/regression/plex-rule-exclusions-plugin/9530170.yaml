@@ -1,0 +1,71 @@
+---
+meta:
+  author: "David Scarth"
+  description: "artwork upload from a file: the raw image body on POST /library/metadata/{id}/{posters,arts,clearLogos,squareArts,...} is not read as form data (requestBodyAccess=Off), so 920250 no longer sees it"
+# Requests are given as encoded_request (base64 of the raw request) because
+# the bodies carry bytes that are not valid UTF-8, which a YAML string cannot
+# hold. 920250 only runs when tx.crs_validate_utf8_encoding=1 (off by
+# default); the integration workflow sets it via crs-config. no_match_regex
+# on the positive cases asserts no paranoia-level-1 CRS rule fired on the
+# upload (the harness is DetectionOnly, so a status assertion would be
+# meaningless). There is no scope-control case: the same binary body makes
+# 920250 fire on CRS main but not on 4.25.1 (first CI run, 2026-10-02), so
+# the assertion is not stable across the harness's CRS targets; 920250's
+# behaviour on this body is production-observed on CRS 4.29.0.
+rule_id: 9530170
+tests:
+  - test_id: 1
+    desc: "JPG bytes posted (no Content-Type) to /posters are not parsed as ARGS (real Plex Web 4.162.1)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          port: 80
+          encoded_request: "UE9TVCAvbGlicmFyeS9tZXRhZGF0YS8xMjI1NDIvcG9zdGVycz9YLVBsZXgtUHJvZHVjdD1QbGV4JTIwV2ViJlgtUGxleC1WZXJzaW9uPTQuMTYyLjEmWC1QbGV4LUNsaWVudC1JZGVudGlmaWVyPWM2bzgxNm1jY25zNTA4cmg3dG1qaG5ncyBIVFRQLzEuMQ0KSG9zdDogbG9jYWxob3N0DQpVc2VyLUFnZW50OiBPV0FTUCBDUlMNCkFjY2VwdDogKi8qDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL3gtd3d3LWZvcm0tdXJsZW5jb2RlZA0KQ29udGVudC1MZW5ndGg6IDIyDQpDb25uZWN0aW9uOiBjbG9zZQ0KDQr/2P/gABBKRklGAAEBAAABAAEAAP/Z"
+        output:
+          log:
+            no_expect_ids: [920250]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 2
+    desc: "JPG bytes posted to /arts (real)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          port: 80
+          encoded_request: "UE9TVCAvbGlicmFyeS9tZXRhZGF0YS8xMjI1NDIvYXJ0cz9YLVBsZXgtUHJvZHVjdD1QbGV4JTIwV2ViJlgtUGxleC1WZXJzaW9uPTQuMTYyLjEmWC1QbGV4LUNsaWVudC1JZGVudGlmaWVyPWM2bzgxNm1jY25zNTA4cmg3dG1qaG5ncyBIVFRQLzEuMQ0KSG9zdDogbG9jYWxob3N0DQpVc2VyLUFnZW50OiBPV0FTUCBDUlMNCkFjY2VwdDogKi8qDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL3gtd3d3LWZvcm0tdXJsZW5jb2RlZA0KQ29udGVudC1MZW5ndGg6IDIyDQpDb25uZWN0aW9uOiBjbG9zZQ0KDQr/2P/gABBKRklGAAEBAAABAAEAAP/Z"
+        output:
+          log:
+            no_expect_ids: [920250]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 3
+    desc: "JPG bytes posted to /clearLogos (real)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          port: 80
+          encoded_request: "UE9TVCAvbGlicmFyeS9tZXRhZGF0YS8yNTU1L2NsZWFyTG9nb3M/WC1QbGV4LVByb2R1Y3Q9UGxleCUyMFdlYiZYLVBsZXgtVmVyc2lvbj00LjE2Mi4xJlgtUGxleC1DbGllbnQtSWRlbnRpZmllcj1jNm84MTZtY2NuczUwOHJoN3RtamhuZ3MgSFRUUC8xLjENCkhvc3Q6IGxvY2FsaG9zdA0KVXNlci1BZ2VudDogT1dBU1AgQ1JTDQpBY2NlcHQ6ICovKg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi94LXd3dy1mb3JtLXVybGVuY29kZWQNCkNvbnRlbnQtTGVuZ3RoOiAyMg0KQ29ubmVjdGlvbjogY2xvc2UNCg0K/9j/4AAQSkZJRgABAQAAAQABAAD/2Q=="
+        output:
+          log:
+            no_expect_ids: [920250]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 4
+    desc: "JPG bytes posted to /squareArts (real)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          port: 80
+          encoded_request: "UE9TVCAvbGlicmFyeS9tZXRhZGF0YS8yNTU1L3NxdWFyZUFydHM/WC1QbGV4LVByb2R1Y3Q9UGxleCUyMFdlYiZYLVBsZXgtVmVyc2lvbj00LjE2Mi4xJlgtUGxleC1DbGllbnQtSWRlbnRpZmllcj1jNm84MTZtY2NuczUwOHJoN3RtamhuZ3MgSFRUUC8xLjENCkhvc3Q6IGxvY2FsaG9zdA0KVXNlci1BZ2VudDogT1dBU1AgQ1JTDQpBY2NlcHQ6ICovKg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi94LXd3dy1mb3JtLXVybGVuY29kZWQNCkNvbnRlbnQtTGVuZ3RoOiAyMg0KQ29ubmVjdGlvbjogY2xvc2UNCg0K/9j/4AAQSkZJRgABAQAAAQABAAD/2Q=="
+        output:
+          log:
+            no_expect_ids: [920250]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 5
+    desc: "documented singular element form /poster (spec enum)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          port: 80
+          encoded_request: "UE9TVCAvbGlicmFyeS9tZXRhZGF0YS8yNTU1L3Bvc3Rlcj9YLVBsZXgtUHJvZHVjdD1QbGV4JTIwV2ViJlgtUGxleC1WZXJzaW9uPTQuMTYyLjEmWC1QbGV4LUNsaWVudC1JZGVudGlmaWVyPWM2bzgxNm1jY25zNTA4cmg3dG1qaG5ncyBIVFRQLzEuMQ0KSG9zdDogbG9jYWxob3N0DQpVc2VyLUFnZW50OiBPV0FTUCBDUlMNCkFjY2VwdDogKi8qDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL3gtd3d3LWZvcm0tdXJsZW5jb2RlZA0KQ29udGVudC1MZW5ndGg6IDIyDQpDb25uZWN0aW9uOiBjbG9zZQ0KDQr/2P/gABBKRklGAAEBAAABAAEAAP/Z"
+        output:
+          log:
+            no_expect_ids: [920250]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
