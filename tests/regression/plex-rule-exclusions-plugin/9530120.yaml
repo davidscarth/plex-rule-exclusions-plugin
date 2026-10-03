@@ -26,7 +26,7 @@ tests:
             Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
           port: 80
           method: GET
-          uri: "/log?level=3&source=Player&message=%5BTranscode%5D%20decision%20failed%20for%20profile%20add-limitation%28scope%3DvideoCodec%26scopeName%3D%2A%26type%3DupperBound%26name%3Dvideo.frameRate%26value%3D30%26replace%3Dtrue%29"
+          uri: "/log?X-Plex-Client-Identifier=c6o816mccns508rh7tmjhngs&level=3&source=Player&message=%5BTranscode%5D%20decision%20failed%20for%20profile%20add-limitation%28scope%3DvideoCodec%26scopeName%3D%2A%26type%3DupperBound%26name%3Dvideo.frameRate%26value%3D30%26replace%3Dtrue%29"
         output:
           log:
             no_expect_ids: [932370]
@@ -43,6 +43,38 @@ tests:
           port: 80
           method: GET
           uri: "/library/sections?message=%5BTranscode%5D%20decision%20failed%20for%20profile%20add-limitation%28scope%3DvideoCodec%26scopeName%3D%2A%26type%3DupperBound%26name%3Dvideo.frameRate%26value%3D30%26replace%3Dtrue%29"
+        output:
+          log:
+            expect_ids: [932370]
+  - test_id: 3
+    desc: "Native-app form: client identifier sent as a header is accepted"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+            X-Plex-Client-Identifier: 1790b23305d4207d-com-plexapp-android
+          port: 80
+          method: GET
+          uri: "/log?level=3&source=Player&message=%5BTranscode%5D%20decision%20failed%20for%20profile%20add-limitation%28scope%3DvideoCodec%26scopeName%3D%2A%26type%3DupperBound%26name%3Dvideo.frameRate%26value%3D30%26replace%3Dtrue%29"
+        output:
+          log:
+            no_expect_ids: [932370]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 4
+    desc: "/log without a Plex client identifier is still inspected (another application's /log)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          headers:
+            Host: localhost
+            User-Agent: OWASP CRS
+            Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+          port: 80
+          method: GET
+          uri: "/log?level=3&source=Player&message=%5BTranscode%5D%20decision%20failed%20for%20profile%20add-limitation%28scope%3DvideoCodec%26scopeName%3D%2A%26type%3DupperBound%26name%3Dvideo.frameRate%26value%3D30%26replace%3Dtrue%29"
         output:
           log:
             expect_ids: [932370]

@@ -50,6 +50,10 @@ The CI harness keeps CRS's default method list, so the plugin tests avoid `PUT`/
 
 On a WAF dedicated to Plex, leave it unset, whether Plex is reached by domain, dynamic-DNS name or bare IP. A wrong value silently disables the exclusions for Plex and playback breaks, which is why unset is the default.
 
+### Scoping to Plex on a shared WAF
+
+The plugin sees every request the WAF sees. On a WAF shared with other applications, an unset `tx.plex-rule-exclusions-plugin_hosts` applies the exclusions to the neighbors' requests too, on the same paths. Set it to the entry that tells Plex apart (`/plex.example.com/`, `/plex.example.com:8443/`, `/:8443/`), or load the plugin only for the Plex site. `/log` is the one exclusion on a path other applications plausibly use; it also requires a Plex client identifier, which keeps it off other applications' ordinary traffic but is not a substitute for host scoping.
+
 ## Disabling the plugin
 
 The plugin can be disabled by uncommenting rule 9530010 inside `plugins/plex-rule-exclusions-config.conf` or by removing the includes for this plugin.
@@ -74,11 +78,11 @@ The plugin uses the allocated block **9530000-9530999**, laid out per convention
 |---|---|---|---|---|
 | 9530100 | `/video\|music\|audio\|subtitles/:/transcode/universal/*`, `/downloadQueue/{id}/add` | `ARGS:X-Plex-Client-Profile-Extra` | 932235, 932370 | client-profile DSL: `protocol=dash&` matches 932235, `&replace` in `add-limitation(...)` matches 932370 |
 | 9530110 | `/photo/:/transcode` | `ARGS:url` (loopback URLs only) | 931100, 934110 | thumbnails are fetched via `url=http://127.0.0.1:32400/...` |
-| 9530120 | `/log` | `ARGS:message` | 932370 | client log lines are free text |
+| 9530120 | `/log`, Plex clients only (`X-Plex-Client-Identifier` present) | `ARGS:message` | 932370 | client log lines are free text |
 | 9530130 | `/media/grabbers/devices`, `/media/grabbers/tv.plex.grabbers.hdhomerun/devices...` | `ARGS:uri` | 931100 | tuner LAN address (moot if plex-hardening-plugin's endpoint denies are on) |
 | 9530140 | `/library/search`, `/tv.plex.providers.*/library/search` | `ARGS:query` | 932230, 932250 | free-text search matches wrapper + 2-3 char command shape (932230) and direct command shape, including type-ahead fragments like `sh movie` (932250) |
 | 9530150 | `/status/sessions/terminate` | `ARGS_NAMES:sessionId` | 943110, 943120 | playback key, not an auth session; endpoint is owner-only |
-| 9530160 | `/library/sections/{id}/all` | whole rule (`ctl:ruleRemoveById`; a regex target key does not load on libmodsecurity) | 932250 | Advanced Filters: free text in the Title field (any level prefix, any operator form) matches the direct command shape, e.g. `title!=ls` |
+| 9530160 | `/library/sections/{id}/all` | `ARGS` (all parameter values; a regex key over the title names does not load on libmodsecurity) | 932250 | Advanced Filters: free text in the Title field (any level prefix, any operator form) matches the direct command shape, e.g. `title!=ls` |
 | 9530170 | `POST /library/metadata/{id}/{posters,arts,clearLogos,squareArts,...}` | request body not read (`ctl:requestBodyAccess=Off`) | 920250 | artwork uploaded from a file is a raw image body sent under a form content type, so the engine parses it as form fields and 920250 (when enabled) rejects the bytes; an image is not form data |
 | 9530180 | `POST /library/metadata/{id}/subtitles` | `REQUEST_HEADERS:Content-Type` on 920420; request body not read | 920420 | subtitle files are posted as `text/plain`, which the CRS content-type policy does not allow; the body would then be parsed as form fields like artwork |
 
@@ -112,7 +116,7 @@ Where real traffic differed from the Plex OpenAPI spec (v1.2.3), the rules follo
 
 ## Tags
 
-The plugin's rules are `pass,nolog` exclusions and carry no tags. To disable one on a path, use its ID: `ctl:ruleRemoveById=9530140`. All exclusions are `ruleRemoveTargetById` on one parameter except 9530160, which removes 932250 on its one endpoint because libmodsecurity will not load a regex target key, and the two upload rules, which stop the body being read.
+The plugin's rules are `pass,nolog` exclusions and carry no tags. To disable one on a path, use its ID: `ctl:ruleRemoveById=9530140`. All exclusions are `ruleRemoveTargetById` on one parameter except 9530160, which removes 932250's whole `ARGS` target on its one endpoint because libmodsecurity will not load a regex key, and the two upload rules, which stop the body being read.
 
 ## Testing
 
