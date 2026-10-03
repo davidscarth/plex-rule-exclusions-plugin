@@ -1,13 +1,10 @@
-> [!WARNING]
-> **WARNING:** This project is under active development. Changes may occur without notice.
-
 # OWASP CRS - Plex Rule Exclusions Plugin
 
 ![Integration tests](https://github.com/davidscarth/plex-rule-exclusions-plugin/actions/workflows/integration.yml/badge.svg) ![Plugin lint](https://github.com/davidscarth/plex-rule-exclusions-plugin/actions/workflows/lint.yml/badge.svg)
 
 ## Description
 
-Rule exclusions for [Plex Media Server](https://www.plex.tv/) behind an OWASP CRS 4.x reverse-proxy WAF (Coraza or ModSecurity). These remove the false positives that otherwise break playback, search, thumbnails, and client log uploads at paranoia level 1 (PL1). Every exclusion is scoped to one endpoint, and almost all to one parameter using `ctl:ruleRemoveTargetById`.
+Rule exclusions for [Plex Media Server](https://www.plex.tv/) behind an OWASP CRS 4.x reverse-proxy WAF (Coraza or ModSecurity). These remove the false positives that otherwise break playback, search, library filters, thumbnails, client log uploads, and artwork and subtitle uploads at paranoia level 1 (PL1). Every exclusion is scoped to one endpoint, and almost all to one parameter using `ctl:ruleRemoveTargetById`.
 
 These started out as my own collection of hand-tuned WAF rules, and ran in production for over a year before I decided to share them with the community. My desire to share them led me to the OWASP CRS plugin registry, and I decided to make them into a formal plugin instead of a loose collection of rules.
 
@@ -76,7 +73,7 @@ The plugin uses the allocated block **9530000-9530999**, laid out per convention
 | Rule | Endpoint | Excluded target | From rule(s) | Why |
 |---|---|---|---|---|
 | 9530100 | `/video\|music\|audio\|subtitles/:/transcode/universal/*`, `/downloadQueue/{id}/add` | `ARGS:X-Plex-Client-Profile-Extra` | 932235, 932370 | client-profile DSL: `protocol=dash&` matches 932235, `&replace` in `add-limitation(...)` matches 932370 |
-| 9530110 | `/photo/:/transcode` | `ARGS:url` | 931100, 934110 | thumbnails are fetched via `url=http://127.0.0.1:32400/...` |
+| 9530110 | `/photo/:/transcode` | `ARGS:url` (loopback URLs only) | 931100, 934110 | thumbnails are fetched via `url=http://127.0.0.1:32400/...` |
 | 9530120 | `/log` | `ARGS:message` | 932370 | client log lines are free text |
 | 9530130 | `/media/grabbers/devices`, `/media/grabbers/tv.plex.grabbers.hdhomerun/devices…` | `ARGS:uri` | 931100 | tuner LAN address (moot if plex-hardening-plugin's endpoint denies are on) |
 | 9530140 | `/library/search`, `/tv.plex.providers.*/library/search` | `ARGS:query` | 932230, 932250 | free-text search matches wrapper + 2-3 char command shape (932230) and direct command shape, including type-ahead fragments like `sh movie` (932250) |
@@ -121,7 +118,7 @@ The plugin's rules are `pass,nolog` exclusions and carry no tags. To disable one
 
 Tests use the go-ftw YAML format under `tests/regression/plex-rule-exclusions-plugin/`, one file per rule, and run through the shared [crs-plugin-test-action](https://github.com/coreruleset/crs-plugin-test-action) workflows (`.github/workflows/integration.yml`, `lint.yml`). That pipeline runs Apache + ModSecurity 2 and nginx + ModSecurity 3 in `DetectionOnly` at paranoia level 4 against CRS `main` and the current LTS.
 
-Every test's payload was checked against the CRS 4.29.0 regex of the rule it targets, so the `no_expect_ids` assertion only holds because the exclusion is in place, and each file also has a scope-control case on an unrelated path asserting the CRS rule still fires. Positive cases also carry `no_match_regex` over paranoia-level-1 rule IDs, so a CRS rule added later that matches the same legitimate payload fails the test; because the harness is `DetectionOnly`, a response-status assertion would prove nothing.
+Every test's payload was checked against the CRS 4.29.0 regex of the rule it targets, so the `no_expect_ids` assertion only holds because the exclusion is in place, and every file except 9530170 also has a scope-control case on an unrelated path asserting the CRS rule still fires. Positive cases also carry `no_match_regex` over paranoia-level-1 rule IDs, so a CRS rule added later that matches the same legitimate payload fails the test; because the harness is `DetectionOnly`, a response-status assertion would prove nothing.
 
 ## Reporting false positives
 

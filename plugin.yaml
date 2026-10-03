@@ -8,10 +8,10 @@ plugin:
   description: "Rule exclusions Plex Media Server needs to run behind OWASP CRS at paranoia level 1."
   long_description: |
     Removes the OWASP CRS false positives that otherwise break Plex Media
-    Server playback, search, thumbnails and client log uploads at paranoia
-    level 1. Every exclusion is scoped to one endpoint and one parameter
-    with ctl:ruleRemoveTargetById. Pairs with plex-hardening-plugin, which
-    adds detection rules and owner-only endpoint denies on top.
+    Server playback, search, library filters, thumbnails, client log uploads
+    and artwork and subtitle uploads at paranoia level 1. Every exclusion is
+    scoped to one endpoint. Pairs with plex-hardening-plugin, which adds
+    detection rules and owner-only endpoint denies on top.
   type: "3rd-party"
   category: "rule-exclusion"
   status: "tested"
@@ -42,7 +42,10 @@ configuration:
       description: "Enables or disables the plugin (0 to disable)."
       required: false
     - name: "tx.plex-rule-exclusions-plugin_hosts"
-      type: "string"
+      type: "list"
+      separator: " "
+      prefix: "/"
+      suffix: "/"
       description: "Space-separated, slash-wrapped scope entries the plugin applies to: /name/, /name:port/, /ip:port/ or /:port/. Unset applies the plugin to every request; set it only when the WAF also fronts other applications."
       required: false
       example: "/plex.example.com/"
