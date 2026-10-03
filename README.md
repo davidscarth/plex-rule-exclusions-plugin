@@ -1,5 +1,5 @@
 > [!WARNING]
-> **WARNING:** This project is under active development. Breaking changes may occur without notice.
+> **WARNING:** This project is under active development. Changes may occur without notice.
 
 # OWASP CRS - Plex Rule Exclusions Plugin
 
