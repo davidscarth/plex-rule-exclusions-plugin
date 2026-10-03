@@ -10,7 +10,7 @@ These started out as my own collection of hand-tuned WAF rules, and ran in produ
 
 This plugin makes Plex *work* behind CRS. To *harden* it, add [plex-hardening-plugin](https://github.com/davidscarth/plex-hardening-plugin), which builds on these exclusions with detection rules for CVE-2026-9665x and the Zenofex PoC classes, plus owner-only endpoint denies.
 
-The CRS plugin documentation can be found on the [website]([https://coreruleset.org/docs/4-about-plugins/4-1-plugins/).
+The CRS plugin documentation can be found on the [website](https://coreruleset.org/docs/4-about-plugins/4-1-plugins/).
 
 ## Requirements
 
