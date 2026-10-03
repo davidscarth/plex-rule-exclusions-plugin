@@ -11,7 +11,7 @@ meta:
 # meaningless). There is no scope-control case: the same binary body makes
 # 920250 fire on CRS main but not on 4.25.1 (first CI run, 2026-10-02), so
 # the assertion is not stable across the harness's CRS targets; 920250's
-# behaviour on this body is production-observed on CRS 4.29.0.
+# behavior on this body is production-observed on CRS 4.29.0.
 rule_id: 9530170
 tests:
   - test_id: 1
