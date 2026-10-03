@@ -83,7 +83,7 @@ The plugin uses the allocated block **9530000-9530999**, laid out per convention
 | 9530140 | `/library/search`, `/tv.plex.providers.*/library/search` | `ARGS:query` | 932230, 932250 | free-text search matches wrapper + 2-3 char command shape (932230) and direct command shape, including type-ahead fragments like `sh movie` (932250) |
 | 9530150 | `/status/sessions/terminate` | `ARGS_NAMES:sessionId` | 943110, 943120 | playback key, not an auth session; endpoint is owner-only |
 | 9530160 | `/library/sections/{id}/all` | `ARGS` (all parameter values; a regex key over the title names does not load on libmodsecurity) | 932250 | Advanced Filters: free text in the Title field (any level prefix, any operator form) matches the direct command shape, e.g. `title!=ls` |
-| 9530170 | `POST /library/metadata/{id}/{posters,arts,clearLogos,squareArts,...}` | request body not read (`ctl:requestBodyAccess=Off`) | 920250 | artwork uploaded from a file is a raw image body sent under a form content type, so the engine parses it as form fields and 920250 (when enabled) rejects the bytes; an image is not form data |
+| 9530170 | `POST /library/metadata/{id}/{posters,arts,clearLogos,squareArts,banners,themes,thumbs}` | request body not read (`ctl:requestBodyAccess=Off`) | 920250 | artwork uploaded from a file is a raw image body sent under a form content type, so the engine parses it as form fields and 920250 (when enabled) rejects the bytes; an image is not form data |
 | 9530180 | `POST /library/metadata/{id}/subtitles` | `REQUEST_HEADERS:Content-Type` on 920420; request body not read | 920420 | subtitle files are posted as `text/plain`, which the CRS content-type policy does not allow; the body would then be parsed as form fields like artwork |
 
 ## How rules are added
@@ -102,7 +102,7 @@ Where real traffic differed from the Plex OpenAPI spec (v1.2.3), the rules follo
 
 | Observed | Spec | Rule |
 |---|---|---|
-| Artwork is uploaded to plural `/posters`, `/arts`, `/clearLogos`, `/squareArts`, as raw bytes under a form content type | singular `{element}` (`poster`, `art`, ...); content type not stated | 9530170 |
+| Artwork is uploaded to plural paths only (`/posters`, `/arts`, `/clearLogos`, `/squareArts`, `/banners`, `/themes`, `/thumbs`); every singular `{element}` form returns 404 (tested 2026-10-03, PMS 1.43.4); sent as raw bytes under a form content type | singular `{element}` (`poster`, `art`, ...); content type not stated | 9530170 |
 | Subtitle upload is a `POST` with `Content-Type: text/plain` | endpoint documented as `GET` only | 9530180 |
 | Photo transcoder `url=` is an absolute loopback URL, port copied from the client's connection (`:32400`, `:443`) | relative path example only | 9530110 |
 | Plex Web encodes filter operators inconsistently (`title!=x` and `title!%3D=x` for the same operator), so the parsed parameter name varies | operators documented, encoding not | 9530160 |

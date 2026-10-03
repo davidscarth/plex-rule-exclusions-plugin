@@ -60,12 +60,23 @@ tests:
             no_expect_ids: [920250]
             no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
   - test_id: 5
-    desc: "documented singular element form /poster (spec enum)"
+    desc: "JPG bytes posted to /thumbs (plural form routed by PMS 1.43.4)"
     stages:
       - input:
           dest_addr: 127.0.0.1
           port: 80
-          encoded_request: "UE9TVCAvbGlicmFyeS9tZXRhZGF0YS8yNTU1L3Bvc3Rlcj9YLVBsZXgtUHJvZHVjdD1QbGV4JTIwV2ViJlgtUGxleC1WZXJzaW9uPTQuMTYyLjEmWC1QbGV4LUNsaWVudC1JZGVudGlmaWVyPWM2bzgxNm1jY25zNTA4cmg3dG1qaG5ncyBIVFRQLzEuMQ0KSG9zdDogbG9jYWxob3N0DQpVc2VyLUFnZW50OiBPV0FTUCBDUlMNCkFjY2VwdDogKi8qDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL3gtd3d3LWZvcm0tdXJsZW5jb2RlZA0KQ29udGVudC1MZW5ndGg6IDIyDQpDb25uZWN0aW9uOiBjbG9zZQ0KDQr/2P/gABBKRklGAAEBAAABAAEAAP/Z"
+          encoded_request: "UE9TVCAvbGlicmFyeS9tZXRhZGF0YS8yNTU1L3RodW1icz9YLVBsZXgtUHJvZHVjdD1QbGV4JTIwV2ViJlgtUGxleC1WZXJzaW9uPTQuMTYyLjEmWC1QbGV4LUNsaWVudC1JZGVudGlmaWVyPWM2bzgxNm1jY25zNTA4cmg3dG1qaG5ncyBIVFRQLzEuMQ0KSG9zdDogbG9jYWxob3N0DQpVc2VyLUFnZW50OiBPV0FTUCBDUlMNCkFjY2VwdDogKi8qDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL3gtd3d3LWZvcm0tdXJsZW5jb2RlZA0KQ29udGVudC1MZW5ndGg6IDIyDQpDb25uZWN0aW9uOiBjbG9zZQ0KDQr/2P/gABBKRklGAAEBAAABAAEAAP/Z"
+        output:
+          log:
+            no_expect_ids: [920250]
+            no_match_regex: 'id "9[0-9]{5}".*paranoia-level/1'
+  - test_id: 6
+    desc: "JPG bytes posted to /banners (plural form routed by PMS 1.43.4)"
+    stages:
+      - input:
+          dest_addr: 127.0.0.1
+          port: 80
+          encoded_request: "UE9TVCAvbGlicmFyeS9tZXRhZGF0YS8yNTU1L2Jhbm5lcnM/WC1QbGV4LVByb2R1Y3Q9UGxleCUyMFdlYiZYLVBsZXgtVmVyc2lvbj00LjE2Mi4xJlgtUGxleC1DbGllbnQtSWRlbnRpZmllcj1jNm84MTZtY2NuczUwOHJoN3RtamhuZ3MgSFRUUC8xLjENCkhvc3Q6IGxvY2FsaG9zdA0KVXNlci1BZ2VudDogT1dBU1AgQ1JTDQpBY2NlcHQ6ICovKg0KQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi94LXd3dy1mb3JtLXVybGVuY29kZWQNCkNvbnRlbnQtTGVuZ3RoOiAyMg0KQ29ubmVjdGlvbjogY2xvc2UNCg0K/9j/4AAQSkZJRgABAQAAAQABAAD/2Q=="
         output:
           log:
             no_expect_ids: [920250]
